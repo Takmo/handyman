@@ -6,23 +6,25 @@ defmodule Handyman.Templates.Descriptor do
   @descriptor_file_name "handyman.toml"
 
   @type descriptor :: %{
-    name: String,
-    description: String,
-    dependencies: [String],
-    snippets: [String],
-    source_files: [String],
-    variables: [%{
-      name: String,
-      value: String,
-    }],
-  }
+          name: String,
+          description: String,
+          dependencies: [String],
+          snippets: [String],
+          source_files: [String],
+          variables: [
+            %{
+              name: String,
+              value: String
+            }
+          ]
+        }
 
   @doc """
   Load a template descriptor from a given file path.
   """
-  @spec load(String) :: {:ok, descriptor} | {:error, String}
+  @spec parse(String) :: {:ok, descriptor} | {:error, String}
   def parse(path) do
-    case Toml.decode_file(path + desciptor_file_name) do
+    case Toml.decode_file(path + @descriptor_file_name) do
       {:error, {:invalid_toml, reason}} -> {:error, reason}
       {:error, reason} -> {:error, reason}
       {:ok, data} -> make_descriptor(data)
@@ -32,7 +34,7 @@ defmodule Handyman.Templates.Descriptor do
   @doc """
   Load a template descriptor from a given file path.
   """
-  @spec load(String) :: descriptor | no_return
+  @spec parse!(String) :: descriptor | no_return
   def parse!(path) do
     case parse(path) do
       {:ok, descriptor} -> descriptor
@@ -40,9 +42,6 @@ defmodule Handyman.Templates.Descriptor do
     end
   end
 
-  @doc """
-  Create a template descriptor from the loaded TOML data.
-  """
   @spec make_descriptor(map) :: {:ok, descriptor} | {:error, String}
   defp make_descriptor(toml_data) do
     descriptor = %{
@@ -51,12 +50,12 @@ defmodule Handyman.Templates.Descriptor do
       dependencies: Map.get(toml_data, 'dependencies', []),
       snippets: Map.get(toml_data, 'snippets', []),
       source_files: Map.get(toml_data, 'source_files', []),
-      variables: Map.get(toml_data, 'variables', []),
+      variables: Map.get(toml_data, 'variables', [])
     }
+
     case descriptor.name do
       nil -> {:error, "template name must not be null"}
       _ -> {:ok, descriptor}
     end
   end
-
 end

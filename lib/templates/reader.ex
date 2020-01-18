@@ -8,15 +8,15 @@ defmodule Handyman.Templates.Reader do
   @snippet_end_identifier "HANDYMAN_HOOK_FINISHED"
 
   @type snippet :: %{
-    source_name: String,
-    destination_name: String,
-    contents: [String],
-  }
+          source_name: String,
+          destination_name: String,
+          contents: [String]
+        }
 
   @type source_file :: %{
-    relative_path: String,
-    contents: [String | :hook_point | [snippet]],
-  }
+          relative_path: String,
+          contents: [String | :hook_point | [snippet]]
+        }
 
   @doc """
   Fill and replace all hook points in a file with their associated snippets, or remove them.
@@ -41,5 +41,4 @@ defmodule Handyman.Templates.Reader do
   def read_source_file(path) do
     # TODO
   end
-
 end
