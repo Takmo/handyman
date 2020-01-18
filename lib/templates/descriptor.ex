@@ -3,18 +3,28 @@ defmodule Handyman.Templates.Descriptor do
   Loads and interacts with a template descriptor file.
   """
 
-  defmodule FileNotFound do
+  @doc """
+  Denotes that a descriptor file was not found.
+  """
+  defmodule FileNotFoundError do
     defexception message: "template file not found"
   end
 
-  defmodule InvalidToml do
+  @doc """
+  Denotes that the descriptor file contained invalid TOML.
+  """
+  defmodule InvalidTOMLError do
     defexception message: "unknown toml error"
   end
 
-  defmodule TemplateNeedsName do
+  @doc """
+  Denotes that the template file did not include the required name field.
+  """
+  defmodule TemplateNeedsNameError do
     defexception message: "template is missing name"
   end
 
+  @typedoc "The handyman.toml template descriptor."
   @type descriptor :: %{
           name: String,
           description: String,
@@ -28,6 +38,27 @@ defmodule Handyman.Templates.Descriptor do
             }
           ]
         }
+
+  @spec make_descriptor(String, map) :: {:ok, descriptor} | {:error, atom, String}
+  defp make_descriptor(path, toml_data) do
+    descriptor = %{
+      name: toml_data["name"],
+      description: toml_data["description"],
+      dependencies: Map.get(toml_data, "dependencies", []),
+      snippets: Map.get(toml_data, "snippets", []),
+      source_files: Map.get(toml_data, "source_files", []),
+      variables: Map.get(toml_data, "variables", [])
+    }
+
+    case descriptor.name do
+      nil ->
+        {:error, :template_needs_name,
+         "The template file at " <> path <> " is missing a required name property."}
+
+      _ ->
+        {:ok, descriptor}
+    end
+  end
 
   @doc """
   Load a template descriptor from a given file path.
@@ -53,32 +84,9 @@ defmodule Handyman.Templates.Descriptor do
     case parse(path) do
       {:ok, descriptor} -> descriptor
       {:error, :unknown_error, reason} -> raise reason
-      {:error, :invalid_toml, reason} -> raise InvalidToml, message: reason
-      {:error, :template_needs_name, reason} -> raise TemplateNeedsName, message: reason
-      {:error, :file_not_found, reason} -> raise FileNotFound, message: reason
-    end
-  end
-
-  @spec make_descriptor(String, map) :: {:ok, descriptor} | {:error, atom, String}
-  defp make_descriptor(path, toml_data) do
-    descriptor = %{
-      name: toml_data["name"],
-      description: toml_data["description"],
-      dependencies: Map.get(toml_data, "dependencies", []),
-      snippets: Map.get(toml_data, "snippets", []),
-      source_files: Map.get(toml_data, "source_files", []),
-      variables: Map.get(toml_data, "variables", [])
-    }
-
-    # IO.puts(toml_data)
-
-    case descriptor.name do
-      nil ->
-        {:error, :template_needs_name,
-         "The template file at " <> path <> " is missing a required name property."}
-
-      _ ->
-        {:ok, descriptor}
+      {:error, :invalid_toml, reason} -> raise InvalidTOMLError, message: reason
+      {:error, :template_needs_name, reason} -> raise TemplateNeedsNameError, message: reason
+      {:error, :file_not_found, reason} -> raise FileNotFoundError, message: reason
     end
   end
 end

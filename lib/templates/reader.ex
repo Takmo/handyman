@@ -7,15 +7,16 @@ defmodule Handyman.Templates.Reader do
   @snippet_start_identifier "HANDYMAN_HOOK_INTO"
   @snippet_end_identifier "HANDYMAN_HOOK_FINISHED"
 
+  @typedoc "A snippet to be copied from a source to a destination in the rendered template."
   @type snippet :: %{
-          source_name: String,
           destination_name: String,
           contents: [String]
         }
 
+  @typedoc "A source file from a template to be rendered."
   @type source_file :: %{
           relative_path: String,
-          contents: [String | :hook_point | [snippet]]
+          contents: [String | {:hook_point, String}]
         }
 
   @doc """
@@ -23,8 +24,23 @@ defmodule Handyman.Templates.Reader do
   """
   @spec inject_hooks(source_file, [snippet]) :: source_file
   def inject_hooks(original_source_file, snippets) do
-    # TODO
+    %{
+      original_source_file
+      | contents:
+          original_source_file.contents
+          |> Enum.flat_map(fn line -> do_inject_hooks(snippets, line) end)
+    }
   end
+
+  @spec do_inject_hooks([snippet], {:hook_point, String}) :: [String]
+  defp do_inject_hooks(snippets, {:hook_point, name}) do
+    snippets
+    |> Enum.filter(fn snippet -> snippet.destination_name == name end)
+    |> Enum.flat_map(fn snippet -> snippet.contents end)
+  end
+
+  @spec do_inject_hooks([snippet], String) :: [String]
+  defp do_inject_hooks(snippets, line), do: [line]
 
   @doc """
   Parse available snippets from a given file path.
