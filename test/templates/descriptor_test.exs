@@ -10,13 +10,13 @@ defmodule HandymanTest.Templates.Descriptor do
   end
 
   test "parse! fails when file path to descriptor is invalid" do
-    assert_raise Descriptor.FileNotFoundError, fn ->
+    assert_raise File.Error, fn ->
       Descriptor.parse!("test/templates/descriptor_resources/does_not_exist.toml")
     end
   end
 
   test "parse! fails when toml is invalid" do
-    assert_raise Descriptor.InvalidTOMLError, fn ->
+    assert_raise Toml.Error, fn ->
       Descriptor.parse!("test/templates/descriptor_resources/invalid.toml")
     end
   end
