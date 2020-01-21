@@ -1,0 +1,11 @@
+print("silly line")
+print("silly line")
+# HANDYMAN_HOOK_POINT random-obscure-hook-point
+print("silly line")
+print("silly line")
+print("silly line")
+print("silly line")
+print("silly line")
+print("silly line")
+print("silly line")
+print("silly line")

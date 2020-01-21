@@ -89,22 +89,46 @@ defmodule HandymanTest.Templates.Reader do
   end
 
   test "inject_hooks! works when there are no hook points in a file" do
-    # TODO
+    f = Reader.read_source_file!("test/templates/reader_resources/source_file_no_hooks.py")
+    s = Reader.read_snippets!("test/templates/reader_resources/snippets_file_four_snippets.py")
+    injected = Reader.inject_hooks(f, s)
+    assert length(injected.contents) == length(f.contents)
+  end
+
+  test "inject_hooks! works when there are no snippets loaded" do
+    f = Reader.read_source_file!("test/templates/reader_resources/source_file_four_hooks.py")
+    s = []
+    injected = Reader.inject_hooks(f, s)
+    assert length(injected.contents) == length(f.contents) - 4
   end
 
   test "inject_hooks! works when there are no snippets compatible with hook points in a file" do
-    # TODO
+    f =
+      Reader.read_source_file!("test/templates/reader_resources/source_file_obscure_hook_name.py")
+
+    s = Reader.read_snippets!("test/templates/reader_resources/snippets_file_four_snippets.py")
+    injected = Reader.inject_hooks(f, s)
+    assert length(injected.contents) == length(f.contents) - 1
   end
 
   test "inject_hooks! works when there is one snippet to inject at a hook point" do
-    # TODO
+    f = Reader.read_source_file!("test/templates/reader_resources/source_file_one_hook.py")
+    s = Reader.read_snippets!("test/templates/reader_resources/snippets_file_four_snippets.py")
+    injected = Reader.inject_hooks(f, s)
+    assert length(injected.contents) == length(f.contents) + 3 * 1 - 1
   end
 
   test "inject_hooks! works when there are multiple snippets to inject at a hook point" do
-    # TODO
+    f = Reader.read_source_file!("test/templates/reader_resources/source_file_one_hook.py")
+    s = Reader.read_snippets!("test/templates/reader_resources/snippets_file_same_hook_points.py")
+    injected = Reader.inject_hooks(f, s)
+    assert length(injected.contents) == length(f.contents) + 3 * 4 - 1
   end
 
   test "inject_hooks! works when there are multiple hook points with a snippet for each" do
-    # TODO
+    f = Reader.read_source_file!("test/templates/reader_resources/source_file_four_hooks.py")
+    s = Reader.read_snippets!("test/templates/reader_resources/snippets_file_four_snippets.py")
+    injected = Reader.inject_hooks(f, s)
+    assert length(injected.contents) == length(f.contents) + 3 * 4 - 4 * 1
   end
 end
