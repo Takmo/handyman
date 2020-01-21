@@ -3,6 +3,9 @@ defmodule Handyman.Templates.Descriptor do
   Loads and interacts with a template descriptor file.
   """
 
+  @moduledoc """
+  Denotes that the template descriptor is missing the required 'name' field.
+  """
   defmodule TemplateNeedsNameError do
     defexception message: "the template needs a name"
   end
