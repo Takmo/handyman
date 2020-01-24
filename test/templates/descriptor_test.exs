@@ -4,14 +4,23 @@ defmodule HandymanTest.Templates.Descriptor do
   doctest Handyman.Templates.Descriptor
 
   test "parse! returns template descriptor on success" do
-    descriptor = Descriptor.parse!("test/templates/descriptor_resources/valid.toml")
+    descriptors = Descriptor.parse!("test/templates/descriptor_resources/valid.toml")
+    assert length(descriptors) == 1
+    descriptor = hd(descriptors)
     assert descriptor
     assert descriptor.name == "a-fine-template"
   end
 
-  test "parse! fails when a template doesn't have a name" do
-    assert_raise Descriptor.TemplateNeedsNameError, fn ->
-      Descriptor.parse!("test/templates/descriptor_resources/no_name_set.toml")
-    end
+  test "parse_string! returns template descriptor on success" do
+    test_string = """
+    [a-fine-template]
+    description = "haha lol"
+    """
+
+    descriptors = Descriptor.parse_string!(test_string)
+    assert length(descriptors) == 1
+    descriptor = hd(descriptors)
+    assert descriptor
+    assert descriptor.name == "a-fine-template"
   end
 end

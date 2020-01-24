@@ -3,13 +3,6 @@ defmodule Handyman.Templates.Descriptor do
   Loads and interacts with a template descriptor file.
   """
 
-  @moduledoc """
-  Denotes that the template descriptor is missing the required 'name' field.
-  """
-  defmodule TemplateNeedsNameError do
-    defexception message: "the template needs a name"
-  end
-
   @typedoc "The handyman.toml template descriptor."
   @type descriptor :: %{
           name: String,
@@ -28,24 +21,30 @@ defmodule Handyman.Templates.Descriptor do
   @doc """
   Load a template descriptor from a given file path.
   """
-  @spec parse!(String) :: descriptor | no_return
+  @spec parse!(String) :: [descriptor] | no_return
   def parse!(path) do
-    toml_data = Toml.decode_file!(path)
+    Toml.decode_file!(path) |> do_parse!
+  end
 
-    descriptor = %{
-      name: toml_data["name"],
-      description: toml_data["description"],
-      dependencies: Map.get(toml_data, "dependencies", []),
-      snippets: Map.get(toml_data, "snippets", []),
-      source_files: Map.get(toml_data, "source_files", []),
-      variables: Map.get(toml_data, "variables", [])
-    }
+  @doc """
+  Load one or more template descriptors from a provided TOML string.
+  """
+  @spec parse_string!(String) :: [descriptor] | no_return
+  def parse_string!(descriptor_string) do
+    Toml.decode!(descriptor_string) |> do_parse!
+  end
 
-    if descriptor.name == nil do
-      raise TemplateNeedsNameError,
-        message: "The template file at " <> path <> " is missing a required name property."
-    else
-      descriptor
-    end
+  @spec do_parse!(struct) :: [descriptor] | no_return
+  defp do_parse!(data) do
+    Enum.map(data, fn {name, descriptor} ->
+      %{
+        name: name,
+        description: descriptor["description"],
+        dependencies: Map.get(descriptor, "dependencies", []),
+        snippets: Map.get(descriptor, "snippets", []),
+        source_files: Map.get(descriptor, "source_files", []),
+        variables: Map.get(descriptor, "variables", [])
+      }
+    end)
   end
 end
