@@ -3,8 +3,8 @@ defmodule HandymanTest.Templates.Descriptor do
   alias Handyman.Templates.Descriptor
   doctest Handyman.Templates.Descriptor
 
-  test "parse! returns template descriptor on success" do
-    descriptors = Descriptor.parse!("test/templates/descriptor_resources/valid.toml")
+  test "parse_file! returns template descriptor on success" do
+    descriptors = Descriptor.parse_file!("test/templates/descriptor_resources/valid.toml")
     assert length(descriptors) == 1
     descriptor = hd(descriptors)
     assert descriptor
