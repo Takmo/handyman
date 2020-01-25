@@ -7,6 +7,7 @@ defmodule Handyman.Templates.Descriptor do
   @type descriptor :: %{
           name: String,
           description: String,
+          url: String,
           dependencies: [String],
           snippets: [String],
           source_files: [String],
@@ -21,8 +22,8 @@ defmodule Handyman.Templates.Descriptor do
   @doc """
   Load a template descriptor from a given file path.
   """
-  @spec parse!(String) :: [descriptor] | no_return
-  def parse!(path) do
+  @spec parse_file!(String) :: [descriptor] | no_return
+  def parse_file!(path) do
     Toml.decode_file!(path) |> do_parse!
   end
 
