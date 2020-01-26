@@ -24,13 +24,36 @@ defmodule Handyman.Templates.Remote do
   end
 
   @doc """
+  Expand all incomplete descriptors into their full contents.
+  """
+  @spec expand_all_configs!([Descriptor.descriptor()]) :: [Descriptor.descriptor()] | no_return
+  def expand_all_configs!(descriptors) do
+    descriptors
+    |> Enum.map(& &1.config_url)
+    |> Enum.filter(&(&1 != ""))
+    |> fetch_all_configs!
+  end
+
+  @doc """
+  Expand an incomplete descriptor into its full contents.
+  """
+  @spec expand_config!(Descriptor.descriptor()) :: [Descriptor.descriptor()] | no_return
+  def expand_config!(descriptor) do
+    if descriptor.repo_url == "" do
+      [descriptor]
+    else
+      fetch_config!(descriptor.repo_url)
+    end
+  end
+
+  @doc """
   Fetch the template descriptors for all provided URLs.
   """
   @spec fetch_all_configs!([String]) :: [Descriptor.descriptor() | {:error, String}] | no_return
   def fetch_all_configs!(config_urls) do
     config_urls
     |> Enum.map(&Task.async(fn -> fetch_config!(&1) end))
-    |> Enum.map(&Task.await(&1))
+    |> Enum.flat_map(&Task.await(&1))
   end
 
   @doc """
@@ -41,20 +64,20 @@ defmodule Handyman.Templates.Remote do
   def fetch_all_templates!(templates_info) do
     templates_info
     |> Enum.map(fn {name, url} -> Task.async(fn -> fetch_template!(name, url) end) end)
-    |> Enum.map(&Task.await(&1))
+    |> Enum.flat_map(&Task.await(&1))
   end
 
   @doc """
   Fetch descriptor(s) from a remote URL.
   """
-  @spec fetch_config!(String) :: [Descriptor.descriptor()] | {:error, String} | no_return
+  @spec fetch_config!(String) :: [Descriptor.descriptor()] | [{:error, String}] | no_return
   def fetch_config!(config_url) do
     case HTTPoison.get!(config_url) do
       %HTTPoison.Response{status_code: 200, body: body} ->
         Handyman.Templates.Descriptor.parse_string!(body)
 
       %HTTPoison.Response{status_code: status} ->
-        {:error, "could not fetch remote config file (status code #{status}"}
+        [{:error, "could not fetch remote config file (status code #{status}"}]
     end
   end
 
@@ -62,13 +85,13 @@ defmodule Handyman.Templates.Remote do
   Fetch an entire template given its name and repository URL.
   """
   @spec fetch_template!(String, String) ::
-          {:ok, [Descriptor.descriptor()]} | {:error, String} | no_return
+          [Descriptor.descriptor()] | [{:error, String}] | no_return
   def fetch_template!(name, repo_url) do
     {output, return_code} = System.cmd("git", ["clone", repo_url, name])
 
     case return_code do
       0 -> Handyman.Templates.Descriptor.parse_file!("#{name}/#{@config_file_name}")
-      _ -> {:error, output}
+      _ -> [{:error, output}]
     end
   end
 end

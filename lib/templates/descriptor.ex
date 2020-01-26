@@ -7,7 +7,8 @@ defmodule Handyman.Templates.Descriptor do
   @type descriptor :: %{
           name: String,
           description: String,
-          url: String,
+          config_url: String,
+          repo_url: String,
           dependencies: [String],
           snippets: [String],
           source_files: [String],
@@ -41,6 +42,8 @@ defmodule Handyman.Templates.Descriptor do
       %{
         name: name,
         description: descriptor["description"],
+        config_url: Map.get(descriptor, "config_url", ""),
+        repo_url: Map.get(descriptor, "repo_url", ""),
         dependencies: Map.get(descriptor, "dependencies", []),
         snippets: Map.get(descriptor, "snippets", []),
         source_files: Map.get(descriptor, "source_files", []),
